@@ -103,6 +103,10 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 		scp ~/.claude/.credentials.json $(INSTANCE):~/.claude/.credentials.json; \
 		ssh $(INSTANCE) "chmod 600 ~/.claude/.credentials.json"; \
 	fi
+	@if [ -f ~/.claude.json ]; then \
+		scp ~/.claude.json $(INSTANCE):~/.claude.json; \
+		ssh $(INSTANCE) "chmod 600 ~/.claude.json"; \
+	fi
 	@if [ -f ~/.codex/auth.json ] || [ -f ~/.codex/.credentials.json ]; then \
 		ssh $(INSTANCE) "mkdir -p ~/.codex && chmod 700 ~/.codex"; \
 		[ -f ~/.codex/auth.json ] && scp ~/.codex/auth.json $(INSTANCE):~/.codex/; \
