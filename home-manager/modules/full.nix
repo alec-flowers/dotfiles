@@ -13,14 +13,19 @@
   home.packages = with pkgs; [
     awscli2
     azure-cli
-    fzf
     k9s
     kubectl
     teleport
   ];
 
-  # Clone zsh plugins if missing
-  home.activation.cloneZshPlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  # fzf with zsh integration (provides ctrl+r history search)
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  # Clone full-profile zsh plugins if missing (lightweight ones are in zsh.nix)
+  home.activation.cloneFullZshPlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     PLUGIN_DIR="$HOME/.zsh-plugins"
     mkdir -p "$PLUGIN_DIR"
 
@@ -28,14 +33,11 @@
       local repo="$1"
       local dest="$2"
       if [ ! -d "$dest" ]; then
-        ${pkgs.git}/bin/git clone --depth 1 "$repo" "$dest" 2>/dev/null || true
+        echo "Cloning $repo -> $dest"
+        ${pkgs.git}/bin/git clone --depth 1 "$repo" "$dest"
       fi
     }
 
-    clone_if_missing "https://github.com/zsh-users/zsh-autosuggestions" \
-      "$PLUGIN_DIR/zsh-autosuggestions"
-    clone_if_missing "https://github.com/zsh-users/zsh-syntax-highlighting" \
-      "$PLUGIN_DIR/zsh-syntax-highlighting"
     clone_if_missing "https://github.com/zsh-users/zsh-history-substring-search" \
       "$PLUGIN_DIR/zsh-history-substring-search"
     clone_if_missing "https://github.com/marlonrichert/zsh-autocomplete" \
@@ -46,9 +48,9 @@
     KUBECONFIG = "$HOME/teleport-kubeconfig.yaml";
   };
 
-  # Full-profile: source custom plugins
+  # Full-profile: source heavier plugins (after core plugins from zsh.nix)
   programs.zsh.initContent = lib.mkAfter ''
-    for plugin in zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search zsh-autocomplete; do
+    for plugin in zsh-history-substring-search zsh-autocomplete; do
       plugin_file="$HOME/.zsh-plugins/$plugin/$plugin.plugin.zsh"
       [ -f "$plugin_file" ] && source "$plugin_file"
     done

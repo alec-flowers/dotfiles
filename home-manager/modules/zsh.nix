@@ -103,16 +103,39 @@
 
         # Load p10k config
         [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+        # Core plugins: autosuggestions (ghost text) + syntax highlighting
+        for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
+          plugin_file="$HOME/.zsh-plugins/$plugin/$plugin.plugin.zsh"
+          [ -f "$plugin_file" ] && source "$plugin_file"
+        done
       '')
     ];
   };
 
-  # Install p10k theme standalone
-  home.activation.installP10k = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    P10K_DIR="$HOME/.zsh-plugins/powerlevel10k"
-    if [ ! -d "$P10K_DIR" ]; then
-      ${pkgs.git}/bin/git clone --depth 1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" 2>/dev/null || true
-    fi
+  # Clone zsh plugins if missing
+  home.activation.installZshPlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    PLUGIN_DIR="$HOME/.zsh-plugins"
+    mkdir -p "$PLUGIN_DIR"
+
+    clone_if_missing() {
+      local repo="$1"
+      local dest="$2"
+      if [ ! -d "$dest" ]; then
+        echo "Cloning $repo -> $dest"
+        ${pkgs.git}/bin/git clone --depth 1 "$repo" "$dest"
+      fi
+    }
+
+    # p10k theme
+    clone_if_missing "https://github.com/romkatv/powerlevel10k" \
+      "$PLUGIN_DIR/powerlevel10k"
+
+    # Lightweight plugins (core)
+    clone_if_missing "https://github.com/zsh-users/zsh-autosuggestions" \
+      "$PLUGIN_DIR/zsh-autosuggestions"
+    clone_if_missing "https://github.com/zsh-users/zsh-syntax-highlighting" \
+      "$PLUGIN_DIR/zsh-syntax-highlighting"
   '';
 
   # Symlink p10k config

@@ -58,6 +58,15 @@ else
   fail "p10k theme installed"
 fi
 
+# Core zsh plugins
+for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
+  if [ -f "$HOME/.zsh-plugins/$plugin/$plugin.plugin.zsh" ]; then
+    pass "$plugin installed"
+  else
+    fail "$plugin installed"
+  fi
+done
+
 # --- SSH ---
 section "SSH"
 SSH_KEY="$HOME/.ssh/gitlab_2026_01"
@@ -210,6 +219,16 @@ done
 
 # --- Full Profile Tools (skip if not full) ---
 section "Full Profile Tools"
+
+# Full-profile zsh plugins
+for plugin in zsh-history-substring-search zsh-autocomplete; do
+  if [ -f "$HOME/.zsh-plugins/$plugin/$plugin.plugin.zsh" ]; then
+    pass "$plugin installed"
+  else
+    skip "$plugin not installed (full profile only)"
+  fi
+done
+
 for cmd in aws az kubectl k9s nvsec tsh; do
   if command -v "$cmd" >/dev/null 2>&1; then
     pass "$cmd on PATH"
