@@ -16,6 +16,7 @@
     fzf
     k9s
     kubectl
+    teleport
   ];
 
   # Clone zsh plugins if missing
@@ -40,6 +41,10 @@
     clone_if_missing "https://github.com/marlonrichert/zsh-autocomplete" \
       "$PLUGIN_DIR/zsh-autocomplete"
   '';
+
+  home.sessionVariables = {
+    KUBECONFIG = "$HOME/teleport-kubeconfig.yaml";
+  };
 
   # Full-profile: source custom plugins
   programs.zsh.initContent = lib.mkAfter ''

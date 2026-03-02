@@ -210,7 +210,7 @@ done
 
 # --- Full Profile Tools (skip if not full) ---
 section "Full Profile Tools"
-for cmd in aws az kubectl k9s nvsec; do
+for cmd in aws az kubectl k9s nvsec tsh; do
   if command -v "$cmd" >/dev/null 2>&1; then
     pass "$cmd on PATH"
   else
