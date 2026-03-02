@@ -71,10 +71,10 @@ apply: backup ## Apply config: make apply [USER=x] [PROFILE=core|full]
 	@echo "$(YELLOW)Run 'source ~/.zshrc' or restart your terminal$(NC)"
 
 # --- Bootstrap (run from LOCAL machine) ---
+# Requires: Brev instance running (brev ls) — SSH config comes from ~/.brev/ssh_config
 
 INSTANCE ?=
 REMOTE_USER = $(shell ssh -G $(INSTANCE) 2>/dev/null | awk '/^user /{print $$2}')
-REMOTE_HOME = $(shell if [ "$(REMOTE_USER)" = "root" ]; then echo "/root"; else echo "/home/$(REMOTE_USER)"; fi)
 
 bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=full]
 	@if [ -z "$(INSTANCE)" ]; then \
@@ -82,7 +82,7 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 		echo "Usage: make bootstrap INSTANCE=my-gpu-box [PROFILE=full]"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)==> Bootstrapping $(INSTANCE) (profile: $(PROFILE))$(NC)"
+	@echo "$(BLUE)==> Bootstrapping $(INSTANCE) (user: $(REMOTE_USER), profile: $(PROFILE))$(NC)"
 	@echo ""
 	@echo "$(BLUE)==> Step 1: Copying SSH key + secrets...$(NC)"
 	@ssh $(INSTANCE) "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
@@ -105,6 +105,8 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 		set -e; \
 		if [ ! -d ~/dotfiles/.git ]; then \
 			git clone https://github.com/alec-flowers/dotfiles.git ~/dotfiles; \
+		else \
+			cd ~/dotfiles && git pull; \
 		fi; \
 		cd ~/dotfiles; \
 		if ! command -v nix >/dev/null 2>&1; then \
@@ -115,8 +117,6 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 		fi; \
 		. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; \
 		make apply PROFILE=$(PROFILE); \
-		echo ""; \
-		echo "Done! SSH in and restart your shell: ssh $(INSTANCE)"; \
 	'
 	@echo ""
 	@echo "$(GREEN)✓ Bootstrap complete!$(NC)"
