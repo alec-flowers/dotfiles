@@ -6,14 +6,14 @@
     prefix = "C-Space";
     keyMode = "vi";
     mouse = true;
-    terminal = "screen-256color";
+    terminal = "tmux-256color";
     historyLimit = 50000;
     escapeTime = 10;
     baseIndex = 1;
 
     extraConfig = ''
       # Reload config
-      bind r source-file ~/.tmux.conf \; display "Reloaded"
+      bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded"
 
       # Split panes with | and -
       bind | split-window -h -c "#{pane_current_path}"
@@ -31,9 +31,15 @@
       bind -r K resize-pane -U 5
       bind -r L resize-pane -R 5
 
-      # Copy mode improvements
+      # Clipboard — pure OSC 52 (no external tools, works over SSH)
+      set -g set-clipboard on
+
+      # Copy mode — vi keys
       bind -T copy-mode-vi v send -X begin-selection
-      bind -T copy-mode-vi y send -X copy-pipe-and-cancel "xclip -in -selection clipboard"
+      bind -T copy-mode-vi y send -X copy-selection-and-cancel
+
+      # Mouse: copy to clipboard on drag end, stay in copy mode
+      bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-selection
 
       # Status bar
       set -g status-position bottom
