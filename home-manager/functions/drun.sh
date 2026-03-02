@@ -1,11 +1,12 @@
 function drun() {
+  local target_home="${DRUN_HOME:-/root}"
   local cmd=(docker run --rm -it --network=host --gpus all \
-    -v "$HOME/.claude:/root/.claude" \
-    -v "$HOME/.claude.json:/root/.claude.json" \
-    -v "$HOME/.local/share/claude:/root/.local/share/claude" \
-    -v "$HOME/.local/bin/claude:/root/.local/bin/claude" \
-    -v "$HOME/.codex:/root/.codex" \
-    -e "PATH=/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+    -v "$HOME/.claude:${target_home}/.claude" \
+    -v "$HOME/.claude.json:${target_home}/.claude.json" \
+    -v "$HOME/.local/share/claude:${target_home}/.local/share/claude" \
+    -v "$HOME/.local/bin/claude:${target_home}/.local/bin/claude" \
+    -v "$HOME/.codex:${target_home}/.codex" \
+    -e "PATH=${target_home}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     "$@")
   echo "${cmd[@]}"
   "${cmd[@]}"
