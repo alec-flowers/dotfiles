@@ -1,3 +1,4 @@
+# Requirements: aws-cli v2.24+, nvsec (pip, NVIDIA GitLab), NVIDIA VPN or SSO access
 function aws_login() {
   export AWS_PAGER=""
 
