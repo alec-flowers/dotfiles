@@ -106,7 +106,7 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 			cd ~/dotfiles && git pull; \
 		fi; \
 		cd ~/dotfiles; \
-		if ! command -v nix >/dev/null 2>&1; then \
+		if [ ! -f /nix/var/nix/profiles/default/bin/nix ]; then \
 			curl -L https://nixos.org/nix/install | sh -s -- --daemon; \
 			sudo mkdir -p /etc/nix; \
 			grep -q "experimental-features" /etc/nix/nix.conf 2>/dev/null || \
