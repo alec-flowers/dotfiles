@@ -1,6 +1,6 @@
 # Dotfiles Makefile
 
-.PHONY: help install vm vm-full local local-full backup check clean update generations rollback
+.PHONY: help install vm vm-full local local-full backup check clean update generations rollback bootstrap
 
 # Colors
 GREEN := \033[0;32m
@@ -20,7 +20,11 @@ help: ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-14s$(NC) %s\n", $$1, $$2}'
 	@echo ""
-	@echo "$(YELLOW)First time setup:$(NC)"
+	@echo "$(YELLOW)First time Brev setup (run from local machine):$(NC)"
+	@echo "  make bootstrap INSTANCE=my-instance"
+	@echo "  make bootstrap INSTANCE=my-instance PROFILE=full"
+	@echo ""
+	@echo "$(YELLOW)Manual setup:$(NC)"
 	@echo "  1. Run 'make install' to install Nix"
 	@echo "  2. Restart your terminal"
 	@echo "  3. Run 'make vm' (lightweight) or 'make vm-full' (full dev env)"
@@ -92,6 +96,63 @@ vm-full: backup ## Apply full VM config (auto-detects user)
 	@nix run home-manager/master -- switch --flake ./home-manager#brev-vm-full -b backup
 	@echo "$(GREEN)✓ Full VM config applied$(NC)"
 	@echo "$(YELLOW)Run 'source ~/.zshrc' or restart your terminal$(NC)"
+
+# --- Bootstrap (run from LOCAL machine) ---
+
+INSTANCE ?=
+PROFILE ?= light
+REMOTE_USER = $(shell ssh -G $(INSTANCE) 2>/dev/null | awk '/^user /{print $$2}')
+REMOTE_HOME = $(shell if [ "$(REMOTE_USER)" = "root" ]; then echo "/root"; else echo "/home/$(REMOTE_USER)"; fi)
+
+bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=full]
+	@if [ -z "$(INSTANCE)" ]; then \
+		echo "$(RED)Error: INSTANCE is required$(NC)"; \
+		echo "Usage: make bootstrap INSTANCE=my-gpu-box [PROFILE=full]"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)==> Bootstrapping $(INSTANCE) (profile: $(PROFILE))$(NC)"
+	@echo ""
+	@echo "$(BLUE)==> Step 1: Copying SSH key + secrets...$(NC)"
+	@ssh $(INSTANCE) "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+	@scp ~/.ssh/gitlab_2026_01 $(INSTANCE):~/.ssh/gitlab_2026_01
+	@scp ~/.ssh/gitlab_2026_01.pub $(INSTANCE):~/.ssh/gitlab_2026_01.pub
+	@ssh $(INSTANCE) "chmod 600 ~/.ssh/gitlab_2026_01"
+	@if [ -f ~/.secrets ]; then \
+		scp ~/.secrets $(INSTANCE):~/.secrets; \
+		ssh $(INSTANCE) "chmod 600 ~/.secrets"; \
+		echo "$(GREEN)✓ Secrets copied$(NC)"; \
+	fi
+	@if [ -f ~/.ssh/config.local ]; then \
+		scp ~/.ssh/config.local $(INSTANCE):~/.ssh/config.local; \
+		echo "$(GREEN)✓ SSH config.local copied$(NC)"; \
+	fi
+	@echo "$(GREEN)✓ Key + secrets copied$(NC)"
+	@echo ""
+	@echo "$(BLUE)==> Step 2: Cloning dotfiles + installing Nix + applying config...$(NC)"
+	@ssh $(INSTANCE) '\
+		set -e; \
+		if [ ! -d ~/dotfiles/.git ]; then \
+			git clone https://github.com/alec-flowers/dotfiles.git ~/dotfiles; \
+		fi; \
+		cd ~/dotfiles; \
+		if ! command -v nix >/dev/null 2>&1; then \
+			curl -L https://nixos.org/nix/install | sh -s -- --daemon; \
+			sudo mkdir -p /etc/nix; \
+			grep -q "experimental-features" /etc/nix/nix.conf 2>/dev/null || \
+				echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf >/dev/null; \
+		fi; \
+		. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; \
+		if [ "$(PROFILE)" = "full" ]; then \
+			make vm-full; \
+		else \
+			make vm; \
+		fi; \
+		echo ""; \
+		echo "Done! SSH in and restart your shell: ssh $(INSTANCE)"; \
+	'
+	@echo ""
+	@echo "$(GREEN)✓ Bootstrap complete!$(NC)"
+	@echo "$(YELLOW)SSH in: ssh $(INSTANCE)$(NC)"
 
 # --- Maintenance ---
 

@@ -4,22 +4,27 @@ Forked from [ishandhanani/dotfiles](https://github.com/ishandhanani/dotfiles).
 
 Nix + Home Manager dotfiles for reproducible dev environments on Brev GPU instances and local workstations.
 
-## Quick Start
+## Quick Start — Brev Instance (one command from local)
 
 ```bash
-# Clone
-git clone git@github.com:alec-flowers/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
-# Install Nix (first time only)
-make install
-# Restart terminal after Nix install
-
 # Lightweight (fast GPU sessions)
-make vm
+make bootstrap INSTANCE=my-gpu-box
 
-# Full dev environment (adds custom zsh plugins, rust, fzf, bat, eza, fd)
-make vm-full
+# Full dev environment
+make bootstrap INSTANCE=my-gpu-box PROFILE=full
+```
+
+This copies your SSH key + secrets, installs Nix, clones dotfiles, and applies the config — all over your existing SSH tunnel.
+
+## Quick Start — Local / Manual
+
+```bash
+git clone git@github.com:alec-flowers/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+make install    # Install Nix (first time only, restart terminal after)
+make local-full # Apply full config
 ```
 
 ## Profiles
@@ -43,14 +48,7 @@ Two separate files, sourced in order:
 - **`~/.zshrc.local`** — Machine-specific (PATH, HF_HOME, STORAGE, etc.). Each machine gets its own. Never copied.
 - **`~/.secrets`** — Portable tokens (GITLAB_TOKEN, NGC_API_KEY, HF_TOKEN). Copy to new instances.
 
-```bash
-# Copy portable files to a new Brev instance:
-brev copy ~/.secrets INSTANCE:~/.secrets
-brev copy ~/.ssh/gitlab_2026_01 INSTANCE:~/.ssh/
-brev copy ~/.ssh/config.local INSTANCE:~/.ssh/config.local
-```
-
-See `home-manager/config/zshrc.local.template` and `secrets.template` for templates.
+`make bootstrap` handles copying automatically. For manual setup, see templates in `home-manager/config/`.
 
 ## Structure
 
@@ -71,8 +69,7 @@ home-manager/
 ├── config/
 │   ├── p10k.zsh        # Powerlevel10k config
 │   ├── zshrc.local.template    # Machine-specific env (never copy)
-│   ├── secrets.template        # Portable tokens (copy to instances)
-│   └── ssh-config.local.template
+│   └── secrets.template        # Portable tokens (copy to instances)
 └── functions/
     └── aws_login.sh    # AWS/nvsec login helper
 ```
