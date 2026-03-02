@@ -22,7 +22,7 @@
       local dest="$2"
       if [ ! -d "$dest" ]; then
         echo "Cloning $repo ..."
-        git clone --depth 1 "$repo" "$dest" 2>/dev/null || true
+        ${pkgs.git}/bin/git clone --depth 1 "$repo" "$dest" 2>/dev/null || true
       fi
     }
 
