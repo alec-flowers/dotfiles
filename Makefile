@@ -86,17 +86,14 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 	@echo ""
 	@echo "$(BLUE)==> Step 1: Copying SSH key + secrets...$(NC)"
 	@ssh $(INSTANCE) "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
-	@scp ~/.ssh/gitlab_2026_01 $(INSTANCE):~/.ssh/gitlab_2026_01
-	@scp ~/.ssh/gitlab_2026_01.pub $(INSTANCE):~/.ssh/gitlab_2026_01.pub
+	@scp ~/.ssh/gitlab_2026_01 ~/.ssh/gitlab_2026_01.pub $(INSTANCE):~/.ssh/
 	@ssh $(INSTANCE) "chmod 600 ~/.ssh/gitlab_2026_01"
 	@if [ -f ~/.secrets ]; then \
 		scp ~/.secrets $(INSTANCE):~/.secrets; \
 		ssh $(INSTANCE) "chmod 600 ~/.secrets"; \
-		echo "$(GREEN)✓ Secrets copied$(NC)"; \
 	fi
 	@if [ -f ~/.ssh/config.local ]; then \
 		scp ~/.ssh/config.local $(INSTANCE):~/.ssh/config.local; \
-		echo "$(GREEN)✓ SSH config.local copied$(NC)"; \
 	fi
 	@echo "$(GREEN)✓ Key + secrets copied$(NC)"
 	@echo ""
@@ -117,6 +114,14 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 		fi; \
 		. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; \
 		make apply PROFILE=$(PROFILE); \
+		ZSH=$$(which zsh); \
+		if [ -x "$$ZSH" ] && ! grep -qF "$$ZSH" /etc/shells; then \
+			echo "$$ZSH" | sudo tee -a /etc/shells >/dev/null; \
+		fi; \
+		if [ -x "$$ZSH" ] && [ "$$SHELL" != "$$ZSH" ]; then \
+			sudo chsh -s "$$ZSH" $$(whoami); \
+			echo "Login shell changed to $$ZSH"; \
+		fi; \
 	'
 	@echo ""
 	@echo "$(GREEN)✓ Bootstrap complete!$(NC)"
