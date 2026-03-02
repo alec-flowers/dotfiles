@@ -23,23 +23,24 @@ This copies your SSH key + secrets, installs Nix, clones dotfiles, and applies t
 ```bash
 git clone git@github.com:alec-flowers/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-make install    # Install Nix (first time only, restart terminal after)
-make local-full # Apply full config
+make install              # Install Nix (first time only, restart terminal after)
+make apply                # Apply core config for current user
+make apply PROFILE=full   # Apply full config for current user
 ```
 
 ## Profiles
 
-| Target | Profile | User Detection |
-|--------|---------|---------------|
-| `make local` | Lightweight | aflowers |
-| `make local-full` | Full | aflowers |
-| `make vm` | Lightweight | ubuntu / nvidia (auto) |
-| `make vm-full` | Full | ubuntu |
-| `make check` | Validate | - |
+| Command | Profile | Description |
+|---------|---------|-------------|
+| `make apply` | Core | Defaults to `$(whoami)-core` |
+| `make apply PROFILE=full` | Full | Full profile for current user |
+| `make apply USER=root` | Core | Core profile for a specific user |
+| `make apply USER=root PROFILE=full` | Full | Full profile for a specific user |
+| `make check` | - | Validate flake |
 
-**Lightweight:** oh-my-zsh + p10k, tmux, vim, git, core CLI tools, NGC CLI.
+**Core:** oh-my-zsh + p10k, tmux, vim, git, core CLI tools, NGC CLI, bat, fd, eza.
 
-**Full:** Everything in lightweight + custom zsh plugins (autosuggestions, syntax-highlighting, history-substring-search, autocomplete), Rust toolchain, fzf, fd, bat, eza.
+**Full:** Everything in core + custom zsh plugins (autosuggestions, syntax-highlighting, history-substring-search, autocomplete), Rust toolchain, fzf.
 
 ## Machine Config vs Portable Secrets
 

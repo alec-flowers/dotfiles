@@ -48,6 +48,13 @@
       gd = "git diff";
       gco = "git checkout";
 
+      # Modern CLI aliases
+      cat = "bat --style=plain --paging=never";
+      ls = "eza --color=always --group-directories-first";
+      l = "eza --color=always --group-directories-first";
+      ll = "eza -la --color=always --group-directories-first";
+      lt = "eza --tree";
+
       # Basic aliases
       d = "docker";
       dc = "docker compose";

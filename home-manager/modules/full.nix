@@ -11,9 +11,6 @@
   # Additional packages for full profile
   home.packages = with pkgs; [
     fzf
-    fd
-    bat
-    eza
   ];
 
   # Clone oh-my-zsh custom plugins if missing
@@ -48,10 +45,5 @@
       [ -f "$plugin_file" ] && source "$plugin_file"
     done
 
-    # bat/eza aliases (only in full profile where they're installed)
-    alias cat="bat --style=plain --paging=never"
-    alias l="eza --color=always --group-directories-first"
-    alias ll="eza -la --color=always --group-directories-first"
-    alias lt="eza --tree"
   '';
 }

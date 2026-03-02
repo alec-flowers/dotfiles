@@ -37,6 +37,8 @@
     git-lfs
     gnupg
     bat
+    fd
+    eza
   ];
 
   programs.home-manager.enable = true;
