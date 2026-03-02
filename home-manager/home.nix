@@ -1,80 +1,48 @@
 { config, pkgs, lib, user, homeDirectory, ... }:
 
-let
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
-in
 {
-  # Basic information about you and your system - dynamic detection
   home = {
     username = user;
     homeDirectory = homeDirectory;
-    
     stateVersion = "24.05";
-    
-    # Global shell aliases available to all shells
+
     shellAliases = {
-      # Quick edits
-      edit-home = "$EDITOR ~/.config/home-manager/home.nix";
+      edit-home = "$EDITOR ~/dotfiles/home-manager/home.nix";
       rebuild = "home-manager switch";
-      v = "nvim";
+      rm = "rm -I";
     };
-    
-    # Session path additions
-    sessionPath = [
-      "$HOME/.local/bin"
-      "$HOME/go/bin"
-    ];
   };
-  
-  # Import modular configurations - conditional based on platform
+
   imports = [
     ./modules/vim.nix
     ./modules/git.nix
     ./modules/zsh.nix
-    ./modules/uvx.nix
-    ./modules/rust.nix
     ./modules/bash.nix
     ./modules/ssh.nix
-    ./modules/neovim.nix
+    ./modules/tmux.nix
+    ./modules/ngc.nix
   ];
-  
-  # Unified packages with platform-specific additions
+
   home.packages = with pkgs; [
-    # Core packages for all platforms
-    gh
-    delta
+    git
     curl
     wget
-    git
-    ruff
-    yq
-    ripgrep
-    starship
     jq
-    fzf
-    eza
-    bat
-    zoxide
-    zellij
-    fd
-    yazi
-    uv
-    gh-dash
-    gh-notify
-    sccache
+    ripgrep
+    htop
+    tmux
+    gh
+    glab
+    git-lfs
+    gnupg
   ];
-  
-  # Let Home Manager manage itself
+
   programs.home-manager.enable = true;
-  
-  # Platform-specific font configuration
-  fonts.fontconfig.enable = isLinux;
-  
-  # News - notify about home-manager news
+
+  fonts.fontconfig.enable = true;
+
   news.display = "silent";
-  
-  # Allow unfree packages
+
   nixpkgs.config = {
     allowUnfree = true;
     allowUnfreePredicate = _: true;

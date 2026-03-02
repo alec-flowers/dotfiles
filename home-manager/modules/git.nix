@@ -3,43 +3,43 @@
 {
   programs.git = {
     enable = true;
-    
-    # User information
-    userName = "Ishan Dhanani";  # Update with your name
-    userEmail = "ishandhanani@gmail.com";  # Update with your email
-    
-    # Core settings
+
+    userName = "Alec Flowers";
+    userEmail = "aflowers@nvidia.com";
+
     extraConfig = {
       core = {
         editor = "vim";
-        fsmonitor = true;
-        untrackedCache = true;
-      };
-      
-      init = {
-        defaultBranch = "main";
-      };
-      
-      pull = {
-        rebase = false;
-      };
-      
-      push = {
-        default = "simple";
       };
 
+      init.defaultBranch = "main";
+      pull.rebase = false;
+      push.default = "simple";
+
+      # SSH signing
       commit.gpgsign = true;
       gpg.format = "ssh";
-      user.signingkey = "~/.ssh/id_ed2551.pub";
-      
+      user.signingkey = "~/.ssh/gitlab_2026_01.pub";
+
+      # GitLab URL rewrite: use SSH instead of HTTPS
       url = {
-        "git@github.com:" = {
-          insteadOf = "https://github.com/";
+        "git@gitlab-master.nvidia.com:" = {
+          insteadOf = "https://gitlab-master.nvidia.com/";
         };
       };
+
+      # Credential store for HTTPS fallback
+      credential.helper = "store";
+
+      # Git LFS
+      filter.lfs = {
+        clean = "git-lfs clean -- %f";
+        smudge = "git-lfs smudge -- %f";
+        process = "git-lfs filter-process";
+        required = true;
+      };
     };
-    
-    # Basic ignore patterns
+
     ignores = [
       ".DS_Store"
       "*.swp"
@@ -49,18 +49,7 @@
       "__pycache__/"
       "*.pyc"
     ];
-  };
 
-  programs.git.delta = {
-    enable = true;  # Better git diffs
-    options = {
-      navigate = true;
-      line-numbers = true;
-      side-by-side = true;
-    };
-  };
-
-  programs.gh-dash = {
-    enable = true;  # GitHub CLI
+    lfs.enable = true;
   };
 }

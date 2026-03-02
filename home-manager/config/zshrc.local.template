@@ -1,0 +1,10 @@
+# ~/.zshrc.local - Machine-specific secrets (never commit actual values)
+# Copy this file to ~/.zshrc.local and fill in real values.
+
+export GITLAB_TOKEN=
+export JET_GITLAB_TOKEN=
+export NGC_API_KEY=
+export NVAPI_KEY_NVSTAGING=
+export NVAPI_KEY_IPP=
+export TRTC_RO_HF_TOKEN=
+export HF_TOKEN=

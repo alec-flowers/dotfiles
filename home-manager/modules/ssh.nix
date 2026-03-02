@@ -13,8 +13,6 @@
           "AddKeysToAgent" = "yes";
           "ServerAliveInterval" = "60";
           "ServerAliveCountMax" = "3";
-        } // lib.optionalAttrs pkgs.stdenv.isDarwin {
-          "UseKeychain" = "yes";
         };
         controlMaster = "auto";
         controlPath = "~/.ssh/sockets/%r@%h-%p";
@@ -23,9 +21,15 @@
       "github.com" = {
         hostname = "github.com";
         user = "git";
-        identityFile = "~/.ssh/id_ed2551";
+        identityFile = "~/.ssh/id_github";
         identitiesOnly = true;
-        addKeysToAgent = "yes";
+      };
+      "gitlab-master.nvidia.com" = {
+        hostname = "gitlab-master.nvidia.com";
+        port = 12051;
+        user = "git";
+        identityFile = "~/.ssh/gitlab_2026_01";
+        identitiesOnly = true;
       };
     };
   };
@@ -35,27 +39,24 @@
     mkdir -p ~/.ssh/sockets
   '';
 
-  # Enable ssh-agent only on Linux
-  services.ssh-agent.enable = pkgs.stdenv.isLinux;
+  # Enable ssh-agent on Linux
+  services.ssh-agent.enable = true;
 
-  # macOS-specific helper: automatically add key to agent/keychain if not already present
-  home.activation.sshAddKey = lib.mkIf pkgs.stdenv.isDarwin ''
-    if [ -f ~/.ssh/id_ed2551 ]; then
-      # Only add key if it's not already in the agent
-      if ! /usr/bin/ssh-add -l 2>/dev/null | grep -q id_ed2551; then
-        /usr/bin/ssh-add --apple-use-keychain ~/.ssh/id_ed2551 2>/dev/null || true
+  # Add keys to agent if not already loaded
+  home.activation.sshAddKeys = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    add_key_if_missing() {
+      local key="$1"
+      if [ -f "$key" ]; then
+        if ! ssh-add -l 2>/dev/null | grep -q "$(basename "$key")"; then
+          ssh-add "$key" 2>/dev/null || true
+        fi
       fi
-    fi
-  '';
+    }
 
-  # Linux: add your key automatically on login if agent is running and key not already loaded
-  home.activation.sshAddKeyLinux = lib.mkIf pkgs.stdenv.isLinux ''
-    if [ -f ~/.ssh/id_ed2551 ]; then
-      # Check if agent is running and key is not already loaded
-      if ! ssh-add -l >/dev/null 2>&1 | grep -q id_ed2551; then
-        eval "$(ssh-agent -s)" >/dev/null 2>&1 || true
-        ssh-add ~/.ssh/id_ed2551 >/dev/null 2>&1 || true
-      fi
+    # Only if agent is running
+    if ssh-add -l >/dev/null 2>&1 || [ $? -eq 1 ]; then
+      add_key_if_missing "$HOME/.ssh/id_github"
+      add_key_if_missing "$HOME/.ssh/gitlab_2026_01"
     fi
   '';
 }

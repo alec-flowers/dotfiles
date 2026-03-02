@@ -1,14 +1,10 @@
 { config, pkgs, lib, ... }:
 
-let
-  isDarwin = pkgs.stdenv.isDarwin;
-in
 {
   programs.zsh = {
     enable = true;
     enableCompletion = true;
 
-    # Use cached compinit - only regenerate once per day
     completionInit = ''
       autoload -Uz compinit
       if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
@@ -18,22 +14,25 @@ in
       fi
     '';
 
-    # Basic history configuration  
     history = {
       size = 10000;
       save = 20000;
       ignoreDups = true;
       share = true;
     };
-    
-    # Environment variables
+
     sessionVariables = {
-      EDITOR = "nvim";
-      VISUAL = "nvim";
-      RUSTC_WRAPPER = "sccache";
+      EDITOR = "vim";
+      VISUAL = "vim";
     };
-    
-    # Shell aliases - just the basics
+
+    # oh-my-zsh with built-in git plugin only (custom plugins are in full.nix)
+    oh-my-zsh = {
+      enable = true;
+      plugins = [ "git" ];
+      theme = "powerlevel10k/powerlevel10k";
+    };
+
     shellAliases = {
       # Git shortcuts
       ga = "git add";
@@ -48,111 +47,89 @@ in
       gd = "git diff";
       gco = "git checkout";
 
-      # Quick navigation
-      godesk = "cd ~/Desktop";
-      gorepo = "cd ~/Documents/repos";
-      
       # Basic aliases
-      v = "nvim";
       d = "docker";
       dc = "docker compose";
       k = "kubectl";
       m = "make";
-      c = "cursor .";
+      tm = "tmux_auto_start";
 
-      # ai 
-      ai = "y-cli chat";
-
-      # Tool aliases
-      cat = "bat --style=plain --paging=never";
-      l = "eza --color=always --group-directories-first";
-      ll = "eza -la --color=always --group-directories-first";
-      lt = "eza --tree";
-      
       # Networking
       myip = "curl -s icanhazip.com";
 
       # venv
       venv = "source .venv/bin/activate";
     };
-    
-    # Zsh-specific configuration
+
     initContent = lib.mkMerge [
-      # Early setup (PATH is handled by sessionPath in home.nix)
-      (lib.mkBefore ''
-        export GPG_TTY="$(tty)"
+      # Powerlevel10k instant prompt (must be first)
+      (lib.mkOrder 500 ''
+        if [[ -r "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh" ]]; then
+          source "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh"
+        fi
       '')
 
       # Main configuration
-      ''
-        # Load edit-command-line widget
-        autoload -Uz edit-command-line
-        zle -N edit-command-line
-        bindkey '^X^E' edit-command-line
-        bindkey "^[b" backward-word
-        bindkey "^[f" forward-word
-        
-        # Source external env if exists
-        [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
-        
+      (lib.mkOrder 1000 ''
+        # tmux session helper
+        tmux_auto_start() {
+          echo "Available tmux sessions:"
+          tmux ls 2>/dev/null || echo "  (none)"
+          echo "Enter session name to attach or create:"
+          read session_name
+          if ! tmux has-session -t "$session_name" 2>/dev/null; then
+            tmux new-session -s "$session_name" -d
+          fi
+          tmux attach-session -t "$session_name"
+        }
+
+        # PATH additions
+        export PATH="$PATH:$HOME/ngc-cli"
+        export PATH="$PATH:$HOME/.local/bin"
+        export PATH="/usr/local/go/bin:$PATH"
+        export PATH="/usr/local/cuda/bin:$HOME/bin:$PATH"
+        export LD_LIBRARY_PATH=/usr/local/cuda/lib64:''${LD_LIBRARY_PATH:-}
+
+        # Environment variables
+        export HF_HOME=/mnt/storage/hf_cache
+        export STORAGE=/mnt/storage/aflowers
+        export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+        export AGENT_ENVIRONMENT=linux
+
+        # Increase open file limit
+        ulimit -n 65536 2>/dev/null
+
+        # NVM (if installed)
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
         # Source Cargo environment if it exists
         [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
-        # Add yazi q alias to switch cwd
-        # based on https://yazi-rs.github.io/docs/quick-start#shell-wrapper
-        function y() {
-          local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-          yazi "$@" --cwd-file="$tmp"
-          IFS= read -r -d $'\0' cwd ${"<"} "$tmp"
-          [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
-          rm -f -- "$tmp"
-        }
-        
-        # Lazy-load AI functions for faster shell startup
-        _ai_functions_loaded=0
-        _load_ai_functions() {
-          if [ "$_ai_functions_loaded" -eq 0 ]; then
-            source ${../functions/ai-functions.sh} > /dev/null 2>&1
-            _ai_functions_loaded=1
-          fi
-        }
+        # Load secrets
+        [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
-        # Create lazy-loading wrappers for AI commands
-        gcai() {
-          _load_ai_functions
-          git_ai_commit "$@"
-        }
+        # Load custom functions
+        for f in "$HOME/.zsh_functions"/*.sh(N); do source "$f"; done
 
-        gprai() {
-          _load_ai_functions
-          gprai "$@"
-        }
-
-        # Source local machine-specific configs 
-        [ -f "$HOME/.zshrc.local" ] && . "$HOME/.zshrc.local"
-      ''
+        # Load p10k config
+        [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+      '')
     ];
   };
 
-  programs.starship = {
-    enable = true;
-    enableZshIntegration = true;
+  # Install p10k theme into oh-my-zsh custom themes
+  home.activation.installP10k = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    P10K_DIR="''${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+    if [ ! -d "$P10K_DIR" ]; then
+      echo "Installing Powerlevel10k theme..."
+      git clone --depth 1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" 2>/dev/null || true
+    fi
+  '';
 
-    settings = {
-      command_timeout = 500;
-      aws.disabled = true;
-      gcloud.disabled = true;
-      git_status.disabled = true;
-    };
-  };
+  # Symlink p10k config
+  home.file.".p10k.zsh".source = ../config/p10k.zsh;
 
-  programs.zoxide = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
-  programs.atuin = {
-    enable = true;
-    enableZshIntegration = true;
-  };
+  # Symlink functions directory
+  home.file.".zsh_functions/aws_login.sh".source = ../functions/aws_login.sh;
 }
