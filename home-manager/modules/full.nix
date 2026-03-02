@@ -14,6 +14,7 @@
     awscli2
     azure-cli
     fzf
+    k9s
     kubectl
   ];
 
