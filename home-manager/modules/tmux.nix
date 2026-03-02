@@ -15,6 +15,12 @@
       # Reload config
       bind r source-file ~/.config/tmux/tmux.conf \; display "Reloaded"
 
+      # Nested tmux: if inside an outer tmux, use C-b as prefix instead
+      if-shell '[ -n "$TMUX" ]' {
+        set -g prefix C-b
+        bind C-b send-prefix
+      }
+
       # Split panes with | and -
       bind | split-window -h -c "#{pane_current_path}"
       bind - split-window -v -c "#{pane_current_path}"

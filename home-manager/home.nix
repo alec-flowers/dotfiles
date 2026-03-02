@@ -22,6 +22,7 @@
     ./modules/tmux.nix
     ./modules/ngc.nix
     ./modules/auth.nix
+    ./modules/ai-tools.nix
   ];
 
   home.packages = with pkgs; [
