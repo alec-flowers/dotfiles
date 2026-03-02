@@ -10,7 +10,7 @@
       echo "rustup already installed, skipping"
     else
       echo "Installing Rust via rustup..."
-      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+      ${pkgs.curl}/bin/curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
       echo "Rust installed successfully"
     fi
   '';
