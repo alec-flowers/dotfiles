@@ -21,6 +21,7 @@
     ./modules/ssh.nix
     ./modules/tmux.nix
     ./modules/ngc.nix
+    ./modules/auth.nix
   ];
 
   home.packages = with pkgs; [
@@ -35,6 +36,7 @@
     glab
     git-lfs
     gnupg
+    bat
   ];
 
   programs.home-manager.enable = true;

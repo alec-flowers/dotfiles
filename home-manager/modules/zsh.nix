@@ -29,6 +29,7 @@
     # oh-my-zsh with built-in git plugin only (custom plugins are in full.nix)
     oh-my-zsh = {
       enable = true;
+      custom = "$HOME/.oh-my-zsh/custom";
       plugins = [ "git" ];
       theme = "powerlevel10k/powerlevel10k";
     };
@@ -67,6 +68,8 @@
         if [[ -r "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh" ]]; then
           source "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh"
         fi
+
+        export PATH="$HOME/.local/bin:$PATH"
       '')
 
       # Main configuration

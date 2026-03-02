@@ -25,5 +25,8 @@
       rm -f /tmp/ngccli_linux.zip
       echo "NGC CLI installed to $NGC_DIR"
     fi
+    # Symlink into ~/.local/bin so ngc-cli dir doesn't need to be on PATH
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$NGC_DIR/ngc" "$HOME/.local/bin/ngc"
   '';
 }

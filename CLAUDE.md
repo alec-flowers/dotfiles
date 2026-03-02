@@ -5,7 +5,7 @@
 **Type:** Home Manager flake-based configuration
 **Owner:** Alec Flowers
 **Platform:** Linux (x86_64-linux) only
-**Design:** Two profiles (lightweight / full) via separate flake homeConfigurations
+**Design:** Two profiles (core / full) generated for every user in the users list
 
 ## Architecture
 
@@ -28,14 +28,12 @@ modules/full.nix (imported additionally by *-full configs)
 
 ## Flake Configurations
 
-| Name | User | Profile | Use Case |
-|------|------|---------|----------|
-| `local` | aflowers | lightweight | workstation |
-| `local-full` | aflowers | full | workstation dev |
-| `brev-vm` | ubuntu | lightweight | quick GPU sessions |
-| `brev-vm-full` | ubuntu | full | long dev sessions |
-| `brev-vm-gpu` | nvidia | lightweight | nvidia-user GPU |
-| `brev-vm-root` | root | lightweight | root fallback |
+Configs are generated as `{user}-{profile}` for every user × profile combo.
+
+**Users:** aflowers, ubuntu, nvidia, root, dynamo (add new users in `home-manager/flake.nix` `users` list)
+**Profiles:** core (`home.nix`), full (`home.nix` + `modules/full.nix`)
+
+Examples: `aflowers-core`, `aflowers-full`, `ubuntu-core`, `root-full`, etc.
 
 ## Key Patterns
 
@@ -48,7 +46,9 @@ modules/full.nix (imported additionally by *-full configs)
 ## Makefile Targets
 
 - `make install` - Install Nix
-- `make vm` / `make vm-full` - Apply lightweight / full VM config
-- `make local` / `make local-full` - Apply lightweight / full local config
+- `make apply` - Apply config (defaults to `$(whoami)-core`)
+- `make apply PROFILE=full` - Apply full profile for current user
+- `make apply USER=root` - Apply core profile for a specific user
 - `make check` - Validate flake
 - `make backup` - Backup existing dotfiles
+- `make bootstrap INSTANCE=name` - Bootstrap a remote instance

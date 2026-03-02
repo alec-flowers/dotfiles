@@ -24,49 +24,36 @@
           };
         };
 
-      coreModules = [ ./home.nix ];
-      fullModules = [ ./home.nix ./modules/full.nix ];
+      # --- Add new users here ---
+      users = [
+        { name = "aflowers"; home = "/home/aflowers"; }
+        { name = "ubuntu";   home = "/home/ubuntu"; }
+        { name = "nvidia";   home = "/home/nvidia"; }
+        { name = "root";     home = "/root"; }
+        { name = "dynamo";   home = "/home/dynamo"; }
+      ];
+
+      profiles = {
+        core = [ ./home.nix ];
+        full = [ ./home.nix ./modules/full.nix ];
+      };
+
+      profileNames = builtins.attrNames profiles;
+
+      # Generate "{user}-{profile}" for every user × profile combo
+      mkConfigs = builtins.listToAttrs (builtins.concatMap (u:
+        map (p: {
+          name = "${u.name}-${p}";
+          value = mkHome {
+            user = u.name;
+            homeDirectory = u.home;
+            modules = profiles.${p};
+          };
+        }) profileNames
+      ) users);
     in
     {
-      homeConfigurations = {
-        # Lightweight profiles (core only)
-        "local" = mkHome {
-          user = "aflowers";
-          homeDirectory = "/home/aflowers";
-          modules = coreModules;
-        };
-
-        "brev-vm" = mkHome {
-          user = "ubuntu";
-          homeDirectory = "/home/ubuntu";
-          modules = coreModules;
-        };
-
-        "brev-vm-gpu" = mkHome {
-          user = "nvidia";
-          homeDirectory = "/home/nvidia";
-          modules = coreModules;
-        };
-
-        # Full profiles (core + full extras)
-        "local-full" = mkHome {
-          user = "aflowers";
-          homeDirectory = "/home/aflowers";
-          modules = fullModules;
-        };
-
-        "brev-vm-full" = mkHome {
-          user = "ubuntu";
-          homeDirectory = "/home/ubuntu";
-          modules = fullModules;
-        };
-
-        "brev-vm-root" = mkHome {
-          user = "root";
-          homeDirectory = "/root";
-          modules = coreModules;
-        };
-      };
+      homeConfigurations = mkConfigs;
 
       formatter.${linuxSystem} = nixpkgs.legacyPackages.${linuxSystem}.nixpkgs-fmt;
     };

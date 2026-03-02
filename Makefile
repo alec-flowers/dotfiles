@@ -1,6 +1,6 @@
 # Dotfiles Makefile
 
-.PHONY: help install vm vm-full local local-full backup check clean update generations rollback bootstrap
+.PHONY: help install apply backup check clean update generations rollback bootstrap test
 
 # Colors
 GREEN := \033[0;32m
@@ -10,7 +10,8 @@ RED := \033[0;31m
 NC := \033[0m
 
 # Variables
-USERNAME := $(shell whoami)
+USER ?= $(shell whoami)
+PROFILE ?= core
 BACKUP_DIR := $(HOME)/.dotfiles-backup-$(shell date +%Y%m%d-%H%M%S)
 
 help: ## Show this help message
@@ -20,21 +21,21 @@ help: ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-14s$(NC) %s\n", $$1, $$2}'
 	@echo ""
+	@echo "$(YELLOW)Usage:$(NC)"
+	@echo "  make apply                          # $(USER)-core"
+	@echo "  make apply PROFILE=full             # $(USER)-full"
+	@echo "  make apply USER=root PROFILE=core   # root-core"
+	@echo ""
 	@echo "$(YELLOW)First time Brev setup (run from local machine):$(NC)"
 	@echo "  make bootstrap INSTANCE=my-instance"
 	@echo "  make bootstrap INSTANCE=my-instance PROFILE=full"
-	@echo ""
-	@echo "$(YELLOW)Manual setup:$(NC)"
-	@echo "  1. Run 'make install' to install Nix"
-	@echo "  2. Restart your terminal"
-	@echo "  3. Run 'make vm' (lightweight) or 'make vm-full' (full dev env)"
 
 install: ## Install Nix using official installer
 	@echo "$(BLUE)==> Installing Nix...$(NC)"
 	@if ! command -v nix &> /dev/null; then \
 		curl -L https://nixos.org/nix/install | sh -s -- --daemon; \
 		echo "$(GREEN)✓ Nix installed$(NC)"; \
-		echo "$(YELLOW)! Restart your terminal, then run 'make vm' or 'make vm-full'$(NC)"; \
+		echo "$(YELLOW)! Restart your terminal, then run 'make apply'$(NC)"; \
 	else \
 		echo "$(GREEN)✓ Nix is already installed$(NC)"; \
 	fi
@@ -63,44 +64,15 @@ backup: ## Backup existing dotfiles
 	done
 	@echo "$(YELLOW)Backup location: $(BACKUP_DIR)$(NC)"
 
-# --- Lightweight profiles (core only) ---
-
-local: backup ## Apply lightweight config (aflowers@workstation)
-	@echo "$(BLUE)==> Applying lightweight local configuration...$(NC)"
-	@nix run home-manager/master -- switch --flake ./home-manager#local -b backup
-	@echo "$(GREEN)✓ Lightweight local config applied$(NC)"
-	@echo "$(YELLOW)Run 'source ~/.zshrc' or restart your terminal$(NC)"
-
-vm: backup ## Apply lightweight VM config (auto-detects user)
-	@echo "$(BLUE)==> Applying lightweight VM configuration...$(NC)"
-	@if [ "$(USERNAME)" = "nvidia" ]; then \
-		nix run home-manager/master -- switch --flake ./home-manager#brev-vm-gpu -b backup; \
-	elif [ "$(USERNAME)" = "root" ]; then \
-		nix run home-manager/master -- switch --flake ./home-manager#brev-vm-root -b backup; \
-	else \
-		nix run home-manager/master -- switch --flake ./home-manager#brev-vm -b backup; \
-	fi
-	@echo "$(GREEN)✓ Lightweight VM config applied$(NC)"
-	@echo "$(YELLOW)Run 'source ~/.zshrc' or restart your terminal$(NC)"
-
-# --- Full profiles (core + extras) ---
-
-local-full: backup ## Apply full config (aflowers@workstation)
-	@echo "$(BLUE)==> Applying full local configuration...$(NC)"
-	@nix run home-manager/master -- switch --flake ./home-manager#local-full -b backup
-	@echo "$(GREEN)✓ Full local config applied$(NC)"
-	@echo "$(YELLOW)Run 'source ~/.zshrc' or restart your terminal$(NC)"
-
-vm-full: backup ## Apply full VM config (auto-detects user)
-	@echo "$(BLUE)==> Applying full VM configuration...$(NC)"
-	@nix run home-manager/master -- switch --flake ./home-manager#brev-vm-full -b backup
-	@echo "$(GREEN)✓ Full VM config applied$(NC)"
+apply: backup ## Apply config: make apply [USER=x] [PROFILE=core|full]
+	@echo "$(BLUE)==> Applying $(USER)-$(PROFILE) configuration...$(NC)"
+	@nix run home-manager/master -- switch --flake ./home-manager#$(USER)-$(PROFILE) -b backup
+	@echo "$(GREEN)✓ $(USER)-$(PROFILE) config applied$(NC)"
 	@echo "$(YELLOW)Run 'source ~/.zshrc' or restart your terminal$(NC)"
 
 # --- Bootstrap (run from LOCAL machine) ---
 
 INSTANCE ?=
-PROFILE ?= light
 REMOTE_USER = $(shell ssh -G $(INSTANCE) 2>/dev/null | awk '/^user /{print $$2}')
 REMOTE_HOME = $(shell if [ "$(REMOTE_USER)" = "root" ]; then echo "/root"; else echo "/home/$(REMOTE_USER)"; fi)
 
@@ -142,17 +114,16 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 				echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf >/dev/null; \
 		fi; \
 		. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; \
-		if [ "$(PROFILE)" = "full" ]; then \
-			make vm-full; \
-		else \
-			make vm; \
-		fi; \
+		make apply PROFILE=$(PROFILE); \
 		echo ""; \
 		echo "Done! SSH in and restart your shell: ssh $(INSTANCE)"; \
 	'
 	@echo ""
 	@echo "$(GREEN)✓ Bootstrap complete!$(NC)"
 	@echo "$(YELLOW)SSH in: ssh $(INSTANCE)$(NC)"
+
+test: ## Run setup verification tests
+	@bash tests/test-setup.sh
 
 # --- Maintenance ---
 
