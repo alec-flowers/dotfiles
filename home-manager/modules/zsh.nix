@@ -96,7 +96,10 @@
         # Source Cargo environment if it exists
         [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
-        # Load machine-specific config (PATH, env vars, secrets)
+        # Load portable secrets (API keys, tokens)
+        [ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
+
+        # Load machine-specific config (PATH, env vars)
         [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
         # Load custom functions
