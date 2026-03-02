@@ -11,7 +11,10 @@
 
   # Additional packages for full profile
   home.packages = with pkgs; [
+    awscli2
+    azure-cli
     fzf
+    kubectl
   ];
 
   # Clone zsh plugins if missing

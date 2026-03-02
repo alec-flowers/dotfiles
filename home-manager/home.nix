@@ -40,6 +40,7 @@
     bat
     fd
     eza
+    uv
   ];
 
   programs.home-manager.enable = true;
