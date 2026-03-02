@@ -1,8 +1,10 @@
 function aws_login() {
   export AWS_PAGER=""
 
+  echo "Checking AWS credentials..."
+
   # 1) Check if current AWS creds are already valid
-  if aws sts get-caller-identity &>/dev/null; then
+  if timeout 3 aws sts get-caller-identity &>/dev/null; then
     echo "AWS credentials are valid:"
     aws sts get-caller-identity --output json --no-cli-pager | python3 -c "
 import sys,json
@@ -18,11 +20,12 @@ print(f\"  UserId:   {d['UserId']}\")
   fi
 
   # 2) Check if nvsec auth is still cached, authenticate if not
-  if nvsec aws list &>/dev/null; then
+  echo "Checking nvsec session..."
+  if timeout 3 nvsec aws list &>/dev/null; then
     echo "nvsec session is active (cached)"
   else
     echo "nvsec session expired, authenticating..."
-    nvsec aws auth
+    nvsec aws auth --no-browser
   fi
 
   # 3) Show available roles and ask which one
@@ -34,7 +37,9 @@ print(f\"  UserId:   {d['UserId']}\")
   role_num="${role_num:-3}"
 
   # 4) Configure AWS credentials for selected role
-  nvsec aws configure "$role_num" --profile default 2>&1 | cat
+  local nvsec_opts=(--profile default --no-refresh)
+  [[ -n "$SSH_CONNECTION" ]] && nvsec_opts+=(--no-browser)
+  nvsec aws configure "$role_num" "${nvsec_opts[@]}" 2>&1 | cat
   if [[ ${pipestatus[1]} -ne 0 ]]; then
     echo "Failed to configure AWS credentials"
     return 1

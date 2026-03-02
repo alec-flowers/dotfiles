@@ -8,9 +8,9 @@
     completionInit = ''
       autoload -Uz compinit
       if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
-        compinit
+        compinit -u
       else
-        compinit -C
+        compinit -C -u
       fi
     '';
 
@@ -24,14 +24,6 @@
     sessionVariables = {
       EDITOR = "vim";
       VISUAL = "vim";
-    };
-
-    # oh-my-zsh with built-in git plugin only (custom plugins are in full.nix)
-    oh-my-zsh = {
-      enable = true;
-      custom = "$HOME/.oh-my-zsh/custom";
-      plugins = [ "git" ];
-      theme = "powerlevel10k/powerlevel10k";
     };
 
     shellAliases = {
@@ -77,6 +69,10 @@
         fi
 
         export PATH="$HOME/.local/bin:$PATH"
+
+        # Source powerlevel10k directly (no framework overhead)
+        P10K_THEME="$HOME/.zsh-plugins/powerlevel10k/powerlevel10k.zsh-theme"
+        [[ -f "$P10K_THEME" ]] && source "$P10K_THEME"
       '')
 
       # Main configuration
@@ -111,11 +107,10 @@
     ];
   };
 
-  # Install p10k theme into oh-my-zsh custom themes
+  # Install p10k theme standalone
   home.activation.installP10k = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    P10K_DIR="''${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+    P10K_DIR="$HOME/.zsh-plugins/powerlevel10k"
     if [ ! -d "$P10K_DIR" ]; then
-      echo "Installing Powerlevel10k theme..."
       ${pkgs.git}/bin/git clone --depth 1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" 2>/dev/null || true
     fi
   '';
