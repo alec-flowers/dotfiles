@@ -30,7 +30,7 @@ section() { printf "\n${BLUE}=== %s ===${NC}\n" "$1"; }
 
 # --- Nix Packages ---
 section "Nix Packages"
-for cmd in git curl wget jq rg htop tmux gh glab git-lfs gpg; do
+for cmd in git curl wget jq rg htop tmux gh glab git-lfs gpg bat fd eza uv; do
   if command -v "$cmd" >/dev/null 2>&1; then
     pass "$cmd on PATH"
   else
@@ -46,19 +46,13 @@ else
   fail "zsh available"
 fi
 
-if [ -d "$HOME/.oh-my-zsh" ]; then
-  pass "oh-my-zsh installed"
-else
-  fail "oh-my-zsh installed"
-fi
-
 if [ -f "$HOME/.p10k.zsh" ]; then
   pass "p10k config exists"
 else
   fail "p10k config exists"
 fi
 
-if [ -d "$HOME/.oh-my-zsh/custom/themes/powerlevel10k" ]; then
+if [ -d "$HOME/.zsh-plugins/powerlevel10k" ]; then
   pass "p10k theme installed"
 else
   fail "p10k theme installed"
@@ -211,6 +205,16 @@ for var in GITLAB_TOKEN NGC_CLI_API_KEY HF_TOKEN GH_TOKEN; do
     pass "$var is set"
   else
     fail "$var is set"
+  fi
+done
+
+# --- Full Profile Tools (skip if not full) ---
+section "Full Profile Tools"
+for cmd in aws az kubectl k9s nvsec; do
+  if command -v "$cmd" >/dev/null 2>&1; then
+    pass "$cmd on PATH"
+  else
+    skip "$cmd not installed (full profile only)"
   fi
 done
 
