@@ -16,8 +16,9 @@ home.nix (core packages + module imports)
 ├── modules/git.nix      # alec's git config, SSH signing
 ├── modules/vim.nix      # minimal vim
 ├── modules/ssh.nix      # github + gitlab matchBlocks
-├── modules/tmux.nix     # ctrl+space, vi keys
-└── modules/ngc.nix      # NGC CLI installer
+├── modules/tmux.nix     # ctrl+space, vi keys (C-b when nested)
+├── modules/ngc.nix      # NGC CLI installer
+└── modules/ai-tools.nix # Claude Code + Codex via npm
 
 modules/full.nix (imported additionally by *-full configs)
 ├── Clones custom zsh plugins (activation script)
@@ -38,8 +39,9 @@ Examples: `aflowers-core`, `aflowers-full`, `ubuntu-core`, `root-full`, etc.
 ## Key Patterns
 
 - **extraSpecialArgs:** `user` and `homeDirectory` passed to all modules
-- **Activation scripts:** Used for one-time setup (NGC CLI, p10k theme, zsh plugins, SSH keys)
-- **Secrets:** Never in repo. Loaded from `~/.zshrc.local` at shell startup
+- **Activation scripts:** Used for one-time setup (NGC CLI, AI tools, p10k theme, zsh plugins, SSH keys)
+- **Secrets:** Never in repo. Loaded from `~/.zshrc.local` → `~/.secrets` at shell startup
+- **AI tool auth:** OAuth credentials (`~/.claude/.credentials.json`, `~/.codex/auth.json`) copied by bootstrap. Not in repo.
 - **Functions:** Sourced from `~/.zsh_functions/*.sh` at shell startup
 - **PATH:** Set in `zsh.nix` initContent (ngc-cli, .local/bin, go, cuda)
 

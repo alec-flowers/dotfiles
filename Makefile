@@ -97,6 +97,20 @@ bootstrap: ## Bootstrap a Brev instance: make bootstrap INSTANCE=name [PROFILE=f
 	fi
 	@echo "$(GREEN)✓ Key + secrets copied$(NC)"
 	@echo ""
+	@echo "$(BLUE)==> Step 1b: Copying AI tool credentials...$(NC)"
+	@if [ -f ~/.claude/.credentials.json ]; then \
+		ssh $(INSTANCE) "mkdir -p ~/.claude && chmod 700 ~/.claude"; \
+		scp ~/.claude/.credentials.json $(INSTANCE):~/.claude/.credentials.json; \
+		ssh $(INSTANCE) "chmod 600 ~/.claude/.credentials.json"; \
+	fi
+	@if [ -f ~/.codex/auth.json ] || [ -f ~/.codex/.credentials.json ]; then \
+		ssh $(INSTANCE) "mkdir -p ~/.codex && chmod 700 ~/.codex"; \
+		[ -f ~/.codex/auth.json ] && scp ~/.codex/auth.json $(INSTANCE):~/.codex/; \
+		[ -f ~/.codex/.credentials.json ] && scp ~/.codex/.credentials.json $(INSTANCE):~/.codex/; \
+		ssh $(INSTANCE) "chmod 600 ~/.codex/auth.json ~/.codex/.credentials.json 2>/dev/null"; \
+	fi
+	@echo "$(GREEN)✓ AI tool credentials copied$(NC)"
+	@echo ""
 	@echo "$(BLUE)==> Step 2: Cloning dotfiles + installing Nix + applying config...$(NC)"
 	@ssh $(INSTANCE) '\
 		set -e; \
