@@ -83,30 +83,10 @@
           tmux attach-session -t "$session_name"
         }
 
-        # PATH additions
-        export PATH="$PATH:$HOME/ngc-cli"
-        export PATH="$PATH:$HOME/.local/bin"
-        export PATH="/usr/local/go/bin:$PATH"
-        export PATH="/usr/local/cuda/bin:$HOME/bin:$PATH"
-        export LD_LIBRARY_PATH=/usr/local/cuda/lib64:''${LD_LIBRARY_PATH:-}
-
-        # Environment variables
-        export HF_HOME=/mnt/storage/hf_cache
-        export STORAGE=/mnt/storage/aflowers
-        export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
-        export AGENT_ENVIRONMENT=linux
-
-        # Increase open file limit
-        ulimit -n 65536 2>/dev/null
-
-        # NVM (if installed)
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-
         # Source Cargo environment if it exists
         [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
-        # Load secrets
+        # Load machine-specific config (PATH, env vars, secrets)
         [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
         # Load custom functions

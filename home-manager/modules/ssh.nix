@@ -21,7 +21,7 @@
       "github.com" = {
         hostname = "github.com";
         user = "git";
-        identityFile = "~/.ssh/id_github";
+        identityFile = "~/.ssh/gitlab_2026_01";
         identitiesOnly = true;
       };
       "gitlab-master.nvidia.com" = {
@@ -55,7 +55,6 @@
 
     # Only if agent is running
     if ssh-add -l >/dev/null 2>&1 || [ $? -eq 1 ]; then
-      add_key_if_missing "$HOME/.ssh/id_github"
       add_key_if_missing "$HOME/.ssh/gitlab_2026_01"
     fi
   '';

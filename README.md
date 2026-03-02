@@ -36,18 +36,21 @@ make vm-full
 
 **Full:** Everything in lightweight + custom zsh plugins (autosuggestions, syntax-highlighting, history-substring-search, autocomplete), Rust toolchain, fzf, fd, bat, eza.
 
-## Secrets
+## Machine Config vs Portable Secrets
 
-Copy secrets to the instance (never committed):
+Two separate files, sourced in order:
+
+- **`~/.zshrc.local`** — Machine-specific (PATH, HF_HOME, STORAGE, etc.). Each machine gets its own. Never copied.
+- **`~/.secrets`** — Portable tokens (GITLAB_TOKEN, NGC_API_KEY, HF_TOKEN). Copy to new instances.
 
 ```bash
-brev copy ~/.zshrc.local INSTANCE:~/.zshrc.local
-brev copy ~/.ssh/id_github INSTANCE:~/.ssh/
+# Copy portable files to a new Brev instance:
+brev copy ~/.secrets INSTANCE:~/.secrets
 brev copy ~/.ssh/gitlab_2026_01 INSTANCE:~/.ssh/
 brev copy ~/.ssh/config.local INSTANCE:~/.ssh/config.local
 ```
 
-See `home-manager/config/zshrc.local.template` for required env vars.
+See `home-manager/config/zshrc.local.template` and `secrets.template` for templates.
 
 ## Structure
 
@@ -67,7 +70,8 @@ home-manager/
 │   └── full.nix        # Custom zsh plugins, fzf, bat, eza, fd
 ├── config/
 │   ├── p10k.zsh        # Powerlevel10k config
-│   ├── zshrc.local.template
+│   ├── zshrc.local.template    # Machine-specific env (never copy)
+│   ├── secrets.template        # Portable tokens (copy to instances)
 │   └── ssh-config.local.template
 └── functions/
     └── aws_login.sh    # AWS/nvsec login helper

@@ -1,10 +1,26 @@
-# ~/.zshrc.local - Machine-specific secrets (never commit actual values)
-# Copy this file to ~/.zshrc.local and fill in real values.
+# ~/.zshrc.local - Machine-specific config (never copy between machines)
+# Each machine gets its own version of this file.
 
-export GITLAB_TOKEN=
-export JET_GITLAB_TOKEN=
-export NGC_API_KEY=
-export NVAPI_KEY_NVSTAGING=
-export NVAPI_KEY_IPP=
-export TRTC_RO_HF_TOKEN=
-export HF_TOKEN=
+# PATH (adjust per machine)
+export PATH="$PATH:$HOME/ngc-cli"
+export PATH="$PATH:$HOME/.local/bin"
+export PATH="/usr/local/go/bin:$PATH"
+export PATH="/usr/local/cuda/bin:$HOME/bin:$PATH"
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH:-}
+
+# Environment (adjust per machine)
+export HF_HOME=/mnt/storage/hf_cache
+export STORAGE=/mnt/storage/<user>
+export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+export AGENT_ENVIRONMENT=linux
+
+# Increase open file limit
+ulimit -n 65536 2>/dev/null
+
+# NVM (if installed)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+
+# Source portable secrets
+[ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
