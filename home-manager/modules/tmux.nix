@@ -37,9 +37,9 @@
 
       # Status bar
       set -g status-position bottom
-      set -g status-style 'bg=colour234 fg=colour137'
-      set -g status-left '#[fg=colour233,bg=colour245,bold] #S '
-      set -g status-right '#[fg=colour233,bg=colour245,bold] %H:%M '
+      set -g status-style 'bg=green fg=black'
+      set -g status-left '#[fg=black,bg=green,bold] #S '
+      set -g status-right '#[fg=black,bg=green,bold] %H:%M '
     '';
   };
 }

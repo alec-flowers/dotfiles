@@ -4,14 +4,14 @@
   programs.git = {
     enable = true;
 
-    userName = "Alec Flowers";
-    userEmail = "aflowers@nvidia.com";
-
-    extraConfig = {
-      core = {
-        editor = "vim";
+    settings = {
+      user = {
+        name = "Alec Flowers";
+        email = "aflowers@nvidia.com";
+        signingkey = "~/.ssh/gitlab_2026_01.pub";
       };
 
+      core.editor = "vim";
       init.defaultBranch = "main";
       pull.rebase = false;
       push.default = "simple";
@@ -19,7 +19,6 @@
       # SSH signing
       commit.gpgsign = true;
       gpg.format = "ssh";
-      user.signingkey = "~/.ssh/gitlab_2026_01.pub";
 
       # GitLab URL rewrite: use SSH instead of HTTPS
       url = {

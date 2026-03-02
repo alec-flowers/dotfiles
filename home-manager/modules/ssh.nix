@@ -3,6 +3,7 @@
 {
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
     includes = [
       "~/.ssh/config.local"
       "~/.brev/ssh_config"
