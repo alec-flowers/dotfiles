@@ -2,7 +2,7 @@
 
 Forked from [ishandhanani/dotfiles](https://github.com/ishandhanani/dotfiles).
 
-Nix + Home Manager dotfiles for reproducible dev environments on Brev GPU instances and local workstations.
+Nix + Home Manager dotfiles for reproducible dev environments.
 
 ## Quick Start — Brev Instance (one command from local)
 
