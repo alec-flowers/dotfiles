@@ -7,6 +7,7 @@
   imports = [
     ./rust.nix
     ./nvsec.nix
+    ./claude-mcp.nix
   ];
 
   # Additional packages for full profile

@@ -40,6 +40,7 @@
     bat
     fd
     eza
+    atuin
     uv
   ];
 
