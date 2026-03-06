@@ -40,9 +40,14 @@
     bat
     fd
     eza
-    atuin
     uv
   ];
+
+  programs.atuin = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+  };
 
   programs.home-manager.enable = true;
 
