@@ -7,6 +7,8 @@ let
   repoDir = "${homeDirectory}/dynamo-ai-workflows";
   repoUrl = "git@gitlab-master.nvidia.com:mkosec/dynamo-ai-workflows.git";
 
+  mcpPath = "${homeDirectory}/.local/bin:${homeDirectory}/.cargo/bin:${homeDirectory}/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
+
   mcpServers = builtins.toJSON {
     linear = {
       type = "http";
@@ -16,11 +18,13 @@ let
       type = "stdio";
       command = "node";
       args = [ "${repoDir}/tools/compute-session/index.js" ];
+      env.PATH = mcpPath;
     };
     "bash-mcp" = {
       type = "stdio";
       command = "node";
       args = [ "${repoDir}/tools/bash-mcp/index.js" ];
+      env.PATH = mcpPath;
     };
   };
 in

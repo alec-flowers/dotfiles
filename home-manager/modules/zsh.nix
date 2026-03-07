@@ -144,4 +144,5 @@
   # Symlink functions directory
   home.file.".zsh_functions/aws_login.sh".source = ../functions/aws_login.sh;
   home.file.".zsh_functions/drun.sh".source = ../functions/drun.sh;
+  home.file.".zsh_functions/pull.sh".source = ../functions/pull.sh;
 }
